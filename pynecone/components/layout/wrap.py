@@ -43,11 +43,8 @@ class Wrap(ChakraComponent):
         Returns:
             The wrap component.
         """
-        if len(children) == 0:
-            children = []
-            for item in items or []:
-                children.append(WrapItem.create(*item))
-
+        if not children:
+            children = [WrapItem.create(*item) for item in items or []]
         return super().create(*children, **props)
 
 

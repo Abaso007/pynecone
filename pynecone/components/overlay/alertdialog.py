@@ -86,7 +86,7 @@ class AlertDialog(ChakraComponent):
         Returns:
             The alert dialog component.
         """
-        if len(children) == 0:
+        if not children:
             contents = []
 
             if header:

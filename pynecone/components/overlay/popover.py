@@ -109,7 +109,7 @@ class Popover(ChakraComponent):
         Returns:
             The popover component.
         """
-        if len(children) == 0:
+        if not children:
             contents = []
 
             trigger = PopoverTrigger.create(trigger)

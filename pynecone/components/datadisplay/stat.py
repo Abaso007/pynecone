@@ -27,7 +27,7 @@ class Stat(ChakraComponent):
         Returns:
             The stat component.
         """
-        if len(children) == 0:
+        if not children:
             children = []
             if label:
                 children.append(StatLabel.create(label))

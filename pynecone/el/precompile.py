@@ -99,10 +99,7 @@ INIT_PY = [
 ]
 
 
-for element in sorted(ELEMENTS):
-    INIT_PY.append(compile_pyclass(element))
-
-
+INIT_PY.extend(compile_pyclass(element) for element in sorted(ELEMENTS))
 os.makedirs(ELEMENTS_DIR, exist_ok=True)
 with open(INIT_PY_PATH, "w+") as f:
     f.write(path_ops.join(INIT_PY))

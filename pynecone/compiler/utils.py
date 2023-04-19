@@ -287,7 +287,7 @@ def get_components_path() -> str:
     Returns:
         The path of the compiled components.
     """
-    return os.path.join(constants.WEB_UTILS_DIR, "components" + constants.JS_EXT)
+    return os.path.join(constants.WEB_UTILS_DIR, f"components{constants.JS_EXT}")
 
 
 def add_meta(

@@ -192,10 +192,7 @@ def format_route(route: str) -> str:
     route = to_snake_case(route).replace("_", "-")
 
     # If the route is empty, return the index route.
-    if route == "":
-        return constants.INDEX_ROUTE
-
-    return route
+    return constants.INDEX_ROUTE if route == "" else route
 
 
 def format_cond(
@@ -269,9 +266,7 @@ def format_event_handler(handler: EventHandler) -> str:
         The formatted function.
     """
     state, name = get_event_handler_parts(handler)
-    if state == "":
-        return name
-    return f"{state}.{name}"
+    return name if state == "" else f"{state}.{name}"
 
 
 def format_event(event_spec: EventSpec) -> str:
@@ -349,9 +344,7 @@ def format_dataframe_values(value: Type) -> List[Any]:
 
     format_data = []
     for data in list(value.values.tolist()):
-        element = []
-        for d in data:
-            element.append(str(d) if isinstance(d, (list, tuple)) else d)
+        element = [str(d) if isinstance(d, (list, tuple)) else d for d in data]
         format_data.append(element)
 
     return format_data

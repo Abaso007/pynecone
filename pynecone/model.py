@@ -15,10 +15,10 @@ def get_engine():
     Raises:
         ValueError: If the database url is None.
     """
-    url = get_config().db_url
-    if not url:
+    if url := get_config().db_url:
+        return sqlmodel.create_engine(url, echo=False)
+    else:
         raise ValueError("No database url in config")
-    return sqlmodel.create_engine(url, echo=False)
 
 
 class Model(Base, sqlmodel.SQLModel):

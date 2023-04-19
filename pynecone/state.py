@@ -565,20 +565,19 @@ class State(Base, ABC):
         # Get the event handler.
         path = event.name.split(".")
         path, name = path[:-1], path[-1]
-        substate = self.get_substate(path)
-        handler = substate.event_handlers[name]  # type: ignore
+        if substate := self.get_substate(path):
+            handler = substate.event_handlers[name]  # type: ignore
 
-        if not substate:
+            return await self.process_event(
+                handler=handler,
+                state=substate,
+                payload=event.payload,
+                token=event.token,
+            )
+        else:
             raise ValueError(
                 "The value of state cannot be None when processing an event."
             )
-
-        return await self.process_event(
-            handler=handler,
-            state=substate,
-            payload=event.payload,
-            token=event.token,
-        )
 
     async def process_event(
         self, handler: EventHandler, state: State, payload: Dict, token: str
@@ -628,18 +627,16 @@ class State(Base, ABC):
         """
         delta = {}
 
-        # Return the dirty vars, as well as all computed vars.
-        subdelta = {
+        if subdelta := {
             prop: getattr(self, prop)
             for prop in self.dirty_vars | self.computed_vars.keys()
-        }
-        if len(subdelta) > 0:
+        }:
             delta[self.get_full_name()] = subdelta
 
         # Recursively find the substate deltas.
         substates = self.substates
         for substate in self.dirty_substates:
-            delta.update(substates[substate].get_delta())
+            delta |= substates[substate].get_delta()
 
         # Format the delta.
         delta = format.format_state(delta)
@@ -690,7 +687,7 @@ class State(Base, ABC):
             k: v.dict(include_computed=include_computed, **kwargs)
             for k, v in self.substates.items()
         }
-        variables = {**base_vars, **computed_vars, **substate_vars}
+        variables = base_vars | computed_vars | substate_vars
         return {k: variables[k] for k in sorted(variables)}
 
 
