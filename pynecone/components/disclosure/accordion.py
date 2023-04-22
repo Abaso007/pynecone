@@ -40,7 +40,7 @@ class Accordion(ChakraComponent):
         Returns:
             The accordion component
         """
-        if len(children) == 0:
+        if not children:
             children = []
             if not items:
                 items = []

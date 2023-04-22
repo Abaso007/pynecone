@@ -464,7 +464,7 @@ async def process(
         post = await app.postprocess(state, event, update.delta)  # type: ignore
         post_list.append(post) if post else None
 
-    if len(post_list) > 0:
+    if post_list:
         return [StateUpdate(delta=post) for post in post_list]
 
     # Return the updates.

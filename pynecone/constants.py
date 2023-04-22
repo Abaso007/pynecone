@@ -261,8 +261,9 @@ class RouteArgType(SimpleNamespace):
     """Type of dynamic route arg extracted from URI route."""
 
     # Typecast to str is needed for Enum to work.
-    SINGLE = str("arg_single")
-    LIST = str("arg_list")
+    SINGLE = "arg_single"
+    LIST = "arg_list"
+
 
 
 class RouteVar(SimpleNamespace):
@@ -288,6 +289,7 @@ class RouteRegex(SimpleNamespace):
     OPT_CATCHALL = re.compile(r"\[\[\.{3}([a-zA-Z_][\w]*)\]\]")
 
 
+# 404 variables
 # 404 variables
 ROOT_404 = ""
 SLUG_404 = "[..._]"

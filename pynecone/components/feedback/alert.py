@@ -32,7 +32,7 @@ class Alert(ChakraComponent):
         Returns:
             The alert component.
         """
-        if len(children) == 0:
+        if not children:
             children = []
 
             if icon:

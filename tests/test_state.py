@@ -556,7 +556,7 @@ def test_reset(test_state, child_state):
     # The values should be reset.
     assert test_state.num1 == 0
     assert test_state.num2 == 3.14
-    assert child_state.value == ""
+    assert not child_state.value
 
     # The dirty vars should be reset.
     assert test_state.dirty_vars == set()

@@ -82,7 +82,7 @@ class Menu(ChakraComponent):
         Returns:
             The menu component.
         """
-        if len(children) == 0:
+        if not children:
             children = []
 
             if button:

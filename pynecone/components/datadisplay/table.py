@@ -40,7 +40,7 @@ class Table(ChakraComponent):
         Returns:
             The table component.
         """
-        if len(children) == 0:
+        if not children:
             children = []
 
             if caption:
@@ -74,7 +74,7 @@ class Thead(ChakraComponent):
         Returns:
             The table header component.
         """
-        if len(children) == 0:
+        if not children:
             children = [Tr.create(cell_type="header", cells=headers)]
         return super().create(*children, **props)
 
@@ -96,7 +96,7 @@ class Tbody(ChakraComponent):
         Returns:
             Component: _description_
         """
-        if len(children) == 0:
+        if not children:
             children = [Tr.create(cell_type="data", cells=row) for row in rows or []]
         return super().create(*children, **props)
 
@@ -118,7 +118,7 @@ class Tfoot(ChakraComponent):
         Returns:
             The table footer component.
         """
-        if len(children) == 0:
+        if not children:
             children = [Tr.create(cell_type="header", cells=footers)]
         return super().create(*children, **props)
 
@@ -143,7 +143,7 @@ class Tr(ChakraComponent):
         """
         types = {"header": Th, "data": Td}
         cell_cls = types.get(cell_type)
-        if len(children) == 0 and cell_cls:
+        if not children and cell_cls:
             if isinstance(cells, Var):
                 children = [Foreach.create(cells, cell_cls.create)]
             else:

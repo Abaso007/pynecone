@@ -179,7 +179,7 @@ class Var(ABC):
         ):
             if self.type_ == Any:
                 raise TypeError(
-                    f"Could not index into var of type Any. (If you are trying to index into a state var, add a type annotation to the var.)"
+                    "Could not index into var of type Any. (If you are trying to index into a state var, add a type annotation to the var.)"
                 )
             raise TypeError(
                 f"Var {self.name} of type {self.type_} does not support indexing."

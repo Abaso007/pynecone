@@ -86,7 +86,7 @@ class Modal(ChakraComponent):
         Returns:
             The modal component.
         """
-        if len(children) == 0:
+        if not children:
             contents = []
 
             # add header if present in props

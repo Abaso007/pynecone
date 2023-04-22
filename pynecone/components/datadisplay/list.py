@@ -32,7 +32,7 @@ class List(ChakraComponent):
         Returns:
             The list component.
         """
-        if len(children) == 0:
+        if not children:
             if isinstance(items, Var):
                 children = [Foreach.create(items, ListItem.create)]
             else:

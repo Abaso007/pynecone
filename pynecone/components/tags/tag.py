@@ -71,7 +71,6 @@ class Tag(Base):
                 return format.json_dumps(prop.full_name)
             prop = prop.full_name
 
-        # Handle event props.
         elif isinstance(prop, EventChain):
             local_args = ",".join(prop.events[0].local_args)
 
@@ -87,16 +86,11 @@ class Tag(Base):
                 event = f"Event([{chain}])"
             prop = f"({local_args}) => {event}"
 
-        # Handle other types.
         elif isinstance(prop, str):
-            if format.is_wrapped(prop, "{"):
-                return prop
-            return format.json_dumps(prop)
-
+            return prop if format.is_wrapped(prop, "{") else format.json_dumps(prop)
         elif isinstance(prop, Figure):
             prop = json.loads(to_json(prop))["data"]  # type: ignore
 
-        # For dictionaries, convert any properties to strings.
         else:
             if isinstance(prop, dict):
                 # Convert any var keys to strings.
@@ -147,25 +141,22 @@ class Tag(Base):
         props_str += " ".join([str(prop) for prop in self.special_props])
 
         # Add a space if there are props.
-        if len(props_str) > 0:
-            props_str = " " + props_str
+        if props_str != "":
+            props_str = f" {props_str}"
 
         if len(self.contents) == 0:
             # If there is no inner content, we don't need a closing tag.
-            tag_str = format.wrap(f"{self.name}{props_str}/", "<")
+            return format.wrap(f"{self.name}{props_str}/", "<")
+        if self.args is None:
+            contents = self.contents
         else:
-            if self.args is not None:
-                # If there are args, wrap the tag in a function call.
-                args_str = ", ".join(self.args)
-                contents = f"{{({{{args_str}}}) => ({self.contents})}}"
-            else:
-                contents = self.contents
-            # Otherwise wrap it in opening and closing tags.
-            open = format.wrap(f"{self.name}{props_str}", "<")
-            close = format.wrap(f"/{self.name}", "<")
-            tag_str = format.wrap(contents, open, close)
-
-        return tag_str
+            # If there are args, wrap the tag in a function call.
+            args_str = ", ".join(self.args)
+            contents = f"{{({{{args_str}}}) => ({self.contents})}}"
+        # Otherwise wrap it in opening and closing tags.
+        open = format.wrap(f"{self.name}{props_str}", "<")
+        close = format.wrap(f"/{self.name}", "<")
+        return format.wrap(contents, open, close)
 
     def add_props(self, **kwargs: Optional[Any]) -> Tag:
         """Add props to the tag.

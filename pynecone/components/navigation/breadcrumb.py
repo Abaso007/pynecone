@@ -30,12 +30,11 @@ class Breadcrumb(ChakraComponent):
         Returns:
             The breadcrumb component.
         """
-        if len(children) == 0:
-            children = []
-            for label, link in items or []:
-                children.append(
-                    BreadcrumbItem.create(BreadcrumbLink.create(label, href=link))
-                )
+        if not children:
+            children = [
+                BreadcrumbItem.create(BreadcrumbLink.create(label, href=link))
+                for label, link in items or []
+            ]
         return super().create(*children, **props)
 
 

@@ -46,7 +46,7 @@ class Tabs(ChakraComponent):
         Returns:
             The tab component
         """
-        if len(children) == 0:
+        if not children:
             tabs = []
             panels = []
             if not items:
