@@ -16,13 +16,15 @@ class Title(Component):
     def render(self) -> dict:
         """Render the title component.
 
+        Raises:
+            ValueError: If the title is not a single string.
+
         Returns:
             The rendered title component.
         """
         # Make sure the title is a single string.
-        assert len(self.children) == 1 and isinstance(
-            self.children[0], Bare
-        ), "Title must be a single string."
+        if len(self.children) != 1 or not isinstance(self.children[0], Bare):
+            raise ValueError("Title must be a single string.")
         return super().render()
 
 
@@ -51,11 +53,11 @@ class Description(Meta):
     """A component that displays the title of the current page."""
 
     # The type of the description.
-    name: str = "description"
+    name: str | None = "description"
 
 
 class Image(Meta):
     """A component that displays the title of the current page."""
 
     # The type of the image.
-    property: str = "og:image"
+    property: str | None = "og:image"

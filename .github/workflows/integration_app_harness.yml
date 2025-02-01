@@ -1,14 +1,18 @@
 name: integration-app-harness
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.id }}
+  cancel-in-progress: true
+
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
     paths-ignore:
-      - '**/*.md'
+      - "**/*.md"
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
     paths-ignore:
-      - '**/*.md'
+      - "**/*.md"
 
 permissions:
   contents: read
@@ -18,8 +22,11 @@ jobs:
     timeout-minutes: 30
     strategy:
       matrix:
-        state_manager: [ "redis", "memory" ]
-    runs-on: ubuntu-latest
+        state_manager: ["redis", "memory"]
+        python-version: ["3.11.11", "3.12.8", "3.13.1"]
+        split_index: [1, 2]
+      fail-fast: false
+    runs-on: ubuntu-22.04
     services:
       # Label used to access the service container
       redis:
@@ -34,22 +41,16 @@ jobs:
           # Maps port 6379 on service container to the host
           - 6379:6379
     steps:
-    - uses: actions/checkout@v4
-    - uses: ./.github/actions/setup_build_env
-      with:
-          python-version: "3.11.5"
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup_build_env
+        with:
+          python-version: ${{ matrix.python-version }}
           run-poetry-install: true
           create-venv-at-path: .venv
-    - run: poetry run pip install pyvirtualdisplay pillow
-    - name: Run app harness tests
-      env:
-        SCREENSHOT_DIR: /tmp/screenshots
-        REDIS_URL: ${{ matrix.state_manager == 'redis' && 'localhost:6379' || '' }}
-      run: |
-        poetry run pytest integration
-    - uses: actions/upload-artifact@v3
-      name: Upload failed test screenshots
-      if: always()
-      with:
-        name: failed_test_screenshots
-        path: /tmp/screenshots
+      - run: poetry run uv pip install pyvirtualdisplay pillow pytest-split pytest-retry
+      - name: Run app harness tests
+        env:
+          REDIS_URL: ${{ matrix.state_manager == 'redis' && 'redis://localhost:6379' || '' }}
+        run: |
+          poetry run playwright install chromium
+          poetry run pytest tests/integration --retries 3 --maxfail=5 --splits 2 --group ${{matrix.split_index}}

@@ -1,11 +1,13 @@
 """File for constants related to the installation process. (Bun/FNM/Node)."""
+
 from __future__ import annotations
 
-import os
 import platform
+from pathlib import Path
 from types import SimpleNamespace
 
-from .base import IS_WINDOWS, Dirs, Reflex
+from .base import IS_WINDOWS
+from .utils import classproperty
 
 
 def get_fnm_name() -> str | None:
@@ -35,15 +37,48 @@ class Bun(SimpleNamespace):
     """Bun constants."""
 
     # The Bun version.
-    VERSION = "0.7.3"
+    VERSION = "1.2.0"
+
     # Min Bun Version
-    MIN_VERSION = "0.7.0"
-    # The directory to store the bun.
-    ROOT_PATH = os.path.join(Reflex.DIR, "bun")
-    # Default bun path.
-    DEFAULT_PATH = os.path.join(ROOT_PATH, "bin", "bun")
+    MIN_VERSION = "1.1.0"
+
     # URL to bun install script.
-    INSTALL_URL = "https://bun.sh/install"
+    INSTALL_URL = "https://raw.githubusercontent.com/reflex-dev/reflex/main/scripts/bun_install.sh"
+
+    # URL to windows install script.
+    WINDOWS_INSTALL_URL = (
+        "https://raw.githubusercontent.com/reflex-dev/reflex/main/scripts/install.ps1"
+    )
+
+    # Path of the bunfig file
+    CONFIG_PATH = "bunfig.toml"
+
+    @classproperty
+    @classmethod
+    def ROOT_PATH(cls):
+        """The directory to store the bun.
+
+        Returns:
+            The directory to store the bun.
+        """
+        from reflex.config import environment
+
+        return environment.REFLEX_DIR.get() / "bun"
+
+    @classproperty
+    @classmethod
+    def DEFAULT_PATH(cls):
+        """Default bun path.
+
+        Returns:
+            The default bun path.
+        """
+        return cls.ROOT_PATH / "bin" / ("bun" if not IS_WINDOWS else "bun.exe")
+
+    DEFAULT_CONFIG = """
+[install]
+registry = "{registry}"
+"""
 
 
 # FNM config.
@@ -52,16 +87,35 @@ class Fnm(SimpleNamespace):
 
     # The FNM version.
     VERSION = "1.35.1"
-    # The directory to store fnm.
-    DIR = os.path.join(Reflex.DIR, "fnm")
+
     FILENAME = get_fnm_name()
-    # The fnm executable binary.
-    EXE = os.path.join(DIR, "fnm.exe" if IS_WINDOWS else "fnm")
 
     # The URL to the fnm release binary
     INSTALL_URL = (
         f"https://github.com/Schniz/fnm/releases/download/v{VERSION}/{FILENAME}.zip"
     )
+
+    @classproperty
+    @classmethod
+    def DIR(cls) -> Path:
+        """The directory to store fnm.
+
+        Returns:
+            The directory to store fnm.
+        """
+        from reflex.config import environment
+
+        return environment.REFLEX_DIR.get() / "fnm"
+
+    @classproperty
+    @classmethod
+    def EXE(cls):
+        """The fnm executable binary.
+
+        Returns:
+            The fnm executable binary.
+        """
+        return cls.DIR / ("fnm.exe" if IS_WINDOWS else "fnm")
 
 
 # Node / NPM config
@@ -69,23 +123,45 @@ class Node(SimpleNamespace):
     """Node/ NPM constants."""
 
     # The Node version.
-    VERSION = "18.17.0"
+    VERSION = "22.11.0"
     # The minimum required node version.
-    MIN_VERSION = "16.8.0"
+    MIN_VERSION = "18.18.0"
 
-    # The node bin path.
-    BIN_PATH = os.path.join(
-        Fnm.DIR,
-        "node-versions",
-        f"v{VERSION}",
-        "installation",
-        "bin" if not IS_WINDOWS else "",
-    )
-    # The default path where node is installed.
-    PATH = os.path.join(BIN_PATH, "node.exe" if IS_WINDOWS else "node")
+    @classproperty
+    @classmethod
+    def BIN_PATH(cls):
+        """The node bin path.
 
-    # The default path where npm is installed.
-    NPM_PATH = os.path.join(BIN_PATH, "npm")
+        Returns:
+            The node bin path.
+        """
+        return (
+            Fnm.DIR
+            / "node-versions"
+            / f"v{cls.VERSION}"
+            / "installation"
+            / ("bin" if not IS_WINDOWS else "")
+        )
+
+    @classproperty
+    @classmethod
+    def PATH(cls):
+        """The default path where node is installed.
+
+        Returns:
+            The default path where node is installed.
+        """
+        return cls.BIN_PATH / ("node.exe" if IS_WINDOWS else "node")
+
+    @classproperty
+    @classmethod
+    def NPM_PATH(cls):
+        """The default path where npm is installed.
+
+        Returns:
+            The default path where npm is installed.
+        """
+        return cls.BIN_PATH / "npm"
 
 
 class PackageJson(SimpleNamespace):
@@ -95,30 +171,28 @@ class PackageJson(SimpleNamespace):
         """The commands to define in package.json."""
 
         DEV = "next dev"
-        EXPORT = "next build && next export -o _static"
-        EXPORT_SITEMAP = "next build && next-sitemap && next export -o _static"
+        EXPORT = "next build"
+        EXPORT_SITEMAP = "next build && next-sitemap"
         PROD = "next start"
 
-    PATH = os.path.join(Dirs.WEB, "package.json")
+    PATH = "package.json"
 
     DEPENDENCIES = {
-        "@chakra-ui/react": "2.6.0",
-        "@chakra-ui/system": "2.5.6",
-        "@emotion/react": "11.10.6",
-        "@emotion/styled": "11.10.6",
-        "axios": "1.4.0",
-        "chakra-react-select": "4.6.0",
-        "focus-visible": "5.2.0",
-        "framer-motion": "10.16.4",
+        "@babel/standalone": "7.26.6",
+        "@emotion/react": "11.14.0",
+        "axios": "1.7.9",
         "json5": "2.2.3",
-        "next": "13.5.4",
-        "next-sitemap": "4.1.8",
-        "react": "18.2.0",
-        "react-dom": "18.2.0",
-        "socket.io-client": "4.6.1",
-        "universal-cookie": "4.0.4",
+        "next": "15.1.6",
+        "next-sitemap": "4.2.3",
+        "next-themes": "0.4.4",
+        "react": "18.3.1",
+        "react-dom": "18.3.1",
+        "react-focus-lock": "2.13.5",
+        "socket.io-client": "4.8.1",
+        "universal-cookie": "7.2.2",
     }
     DEV_DEPENDENCIES = {
-        "autoprefixer": "10.4.14",
-        "postcss": "8.4.24",
+        "autoprefixer": "10.4.20",
+        "postcss": "8.5.1",
+        "postcss-import": "16.1.0",
     }

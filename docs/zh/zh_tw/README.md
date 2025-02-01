@@ -11,18 +11,32 @@
 **✨ 使用 Python 建立高效且可自訂的網頁應用程式，幾秒鐘內即可部署。✨**  
 
 [![PyPI version](https://badge.fury.io/py/reflex.svg)](https://badge.fury.io/py/reflex)
-![tests](https://github.com/pynecone-io/pynecone/actions/workflows/integration.yml/badge.svg)
 ![versions](https://img.shields.io/pypi/pyversions/reflex.svg)
 [![Documentaiton](https://img.shields.io/badge/Documentation%20-Introduction%20-%20%23007ec6)](https://reflex.dev/docs/getting-started/introduction)
 [![Discord](https://img.shields.io/discord/1029853095527727165?color=%237289da&label=Discord)](https://discord.gg/T5WSbC2YtQ)
+
 </div>
 
 ---
-[English](https://github.com/reflex-dev/reflex/blob/main/README.md) | [简体中文](https://github.com/reflex-dev/reflex/blob/main/docs/zh/zh_cn/README.md) | [繁體中文](https://github.com/reflex-dev/reflex/blob/main/docs/zh/zh_tw/README.md) | [Türkçe](https://github.com/reflex-dev/reflex/blob/main/docs/tr/README.md)
+
+[English](https://github.com/reflex-dev/reflex/blob/main/README.md) | [简体中文](https://github.com/reflex-dev/reflex/blob/main/docs/zh/zh_cn/README.md) | [繁體中文](https://github.com/reflex-dev/reflex/blob/main/docs/zh/zh_tw/README.md) | [Türkçe](https://github.com/reflex-dev/reflex/blob/main/docs/tr/README.md) | [हिंदी](https://github.com/reflex-dev/reflex/blob/main/docs/in/README.md) | [Português (Brasil)](https://github.com/reflex-dev/reflex/blob/main/docs/pt/pt_br/README.md) | [Italiano](https://github.com/reflex-dev/reflex/blob/main/docs/it/README.md) | [Español](https://github.com/reflex-dev/reflex/blob/main/docs/es/README.md) | [한국어](https://github.com/reflex-dev/reflex/blob/main/docs/kr/README.md) | [日本語](https://github.com/reflex-dev/reflex/blob/main/docs/ja/README.md) | [Deutsch](https://github.com/reflex-dev/reflex/blob/main/docs/de/README.md) | [Persian (پارسی)](https://github.com/reflex-dev/reflex/blob/main/docs/pe/README.md)
+
 ---
+
+# Reflex
+
+Reflex 是一個可以用純 Python 構建全端網頁應用程式的函式庫。
+
+主要特色：
+
+* **純 Python** - 您可以用 Python 撰寫應用程式的前端和後端，無需學習 Javascript。
+* **完全靈活性** - Reflex 易於上手，但也可以擴展到複雜的應用程式。
+* **立即部署** - 構建後，只需使用[單一指令](https://reflex.dev/docs/hosting/deploy-quick-start/)即可部署您的應用程式，或在您自己的伺服器上託管。
+請參閱我們的[架構頁面](https://reflex.dev/blog/2024-03-21-reflex-architecture/#the-reflex-architecture)了解 Reflex 如何在底層運作。
+
 ## ⚙️ 安裝
 
-開啟一個終端機並且執行 (需要 Python 3.7+):
+開啟一個終端機並且執行 (需要 Python 3.10+):
 
 ```bash
 pip install reflex
@@ -70,7 +84,8 @@ reflex run
 import reflex as rx
 import openai
 
-openai.api_key = "YOUR_API_KEY"
+openai_client = openai.OpenAI()
+
 
 class State(rx.State):
     """應用程式狀態"""
@@ -86,33 +101,33 @@ class State(rx.State):
 
         self.processing, self.complete = True, False
         yield
-        response = openai.Image.create(prompt=self.prompt, n=1, size="1024x1024")
-        self.image_url = response["data"][0]["url"]
+        response = openai_client.images.generate(
+            prompt=self.prompt, n=1, size="1024x1024"
+        )
+        self.image_url = response.data[0].url
         self.processing, self.complete = False, True
         
 
 def index():
     return rx.center(
         rx.vstack(
-            rx.heading("DALL·E"),
-            rx.input(placeholder="Enter a prompt", on_blur=State.set_prompt),
+            rx.heading("DALL-E", font_size="1.5em"),
+            rx.input(
+                placeholder="Enter a prompt..",
+                on_blur=State.set_prompt,
+                width="25em",
+            ),
             rx.button(
-                "Generate Image",
+                "Generate Image", 
                 on_click=State.get_image,
-                is_loading=State.processing,
-                width="100%",
+                width="25em",
+                loading=State.processing
             ),
             rx.cond(
                 State.complete,
-                     rx.image(
-                         src=State.image_url,
-                         height="25em",
-                         width="25em",
-                    )
+                rx.image(src=State.image_url, width="20em"),
             ),
-            padding="2em",
-            shadow="lg",
-            border_radius="lg",
+            align="center",
         ),
         width="100%",
         height="100vh",
@@ -120,11 +135,22 @@ def index():
 
 # 把狀態跟頁面添加到應用程式。
 app = rx.App()
-app.add_page(index, title="reflex:DALL·E")
-app.compile()
+app.add_page(index, title="Reflex:DALL-E")
 ```
 
+
+
+
+
+
+
 ## 讓我們來拆解一下。
+
+<div align="center">
+<img src="../../images/dalle_colored_code_example.png" alt="解釋 DALL-E app 的前端和後端部分的區別。" width="900" />
+</div>
+
+
 ### **Reflex 使用者介面**
 
 讓我們從使用介面開始。
@@ -140,7 +166,7 @@ def index():
 
 我們用不同的元件像是 `center`, `vstack`, `input`, 和 `button` 來建立前端，元件之間可互相套入以建立出複雜的版面配置。並且您可使用關鍵字引數 *keyword args* 運行 CSS 全部功能來設計這些元件們的樣式。
 
-Reflex 擁有 [60+ 內建元件](https://reflex.dev/docs/library) 來幫助你開始建立應用程式。我們正積極添加元件，你也可以簡單地 [創建自己所屬的元件](https://reflex.dev/docs/advanced-guide/wrapping-react)。
+Reflex 擁有 [60+ 內建元件](https://reflex.dev/docs/library) 來幫助你開始建立應用程式。我們正積極添加元件，你也可以簡單地 [創建自己所屬的元件](https://reflex.dev/docs/wrapping-react/overview/)。
 
 ### **應用程式狀態**
 
@@ -151,8 +177,9 @@ class State(rx.State):
     """應用程式狀態"""
     prompt = ""
     image_url = ""
-    image_processing = False
-    image_made = False
+    processing = False
+    complete = False
+
 ```
 
 應用程式狀態定義了應用程式中所有可以更改的變數及變更他們的函式 (稱為 vars)。
@@ -169,8 +196,10 @@ def get_image(self):
 
     self.processing, self.complete = True, False
     yield
-    response = openai.Image.create(prompt=self.prompt, n=1, size="1024x1024")
-    self.image_url = response["data"][0]["url"]
+    response = openai_client.images.generate(
+        prompt=self.prompt, n=1, size="1024x1024"
+    )
+    self.image_url = response.data[0].url
     self.processing, self.complete = False, True
 ```
 
@@ -192,7 +221,6 @@ app = rx.App()
 
 ```python
 app.add_page(index, title="DALL-E")
-app.compile()
 ```
 
 你可以添加更多頁面至路由藉此來建立多頁面應用程式(multi-page app)
@@ -201,34 +229,35 @@ app.compile()
 
 <div align="center">
 
-📑 [Docs](https://reflex.dev/docs/getting-started/introduction) &nbsp; |  &nbsp; 🗞️ [Blog](https://reflex.dev/blog) &nbsp; |  &nbsp; 📱 [Component Library](https://reflex.dev/docs/library) &nbsp; |  &nbsp; 🖼️ [Gallery](https://reflex.dev/docs/gallery) &nbsp; |  &nbsp; 🛸 [Deployment](https://reflex.dev/docs/hosting/deploy)  &nbsp;   
+📑 [Docs](https://reflex.dev/docs/getting-started/introduction) &nbsp; |  &nbsp; 🗞️ [Blog](https://reflex.dev/blog) &nbsp; |  &nbsp; 📱 [Component Library](https://reflex.dev/docs/library) &nbsp; |  &nbsp; 🖼️ [Gallery](https://reflex.dev/docs/gallery) &nbsp; |  &nbsp; 🛸 [Deployment](https://reflex.dev/docs/hosting/deploy-quick-start)  &nbsp;   
 
 </div>
 
 
 
-## ✅ Reflex 狀態
+## ✅ 產品狀態
 
-Reflex 於 2022 年 12 月推出，當時名為 Pynecone。
+Reflex 在 2022 年 12 月以 Pynecone 的名字推出。
 
-截至 2023 年 7 月，我們處於 **Public Beta** 階段。
-
--   :white_check_mark: **Public Alpha**: 任何人都可以安裝與使用 Reflex，或許包含問題， 但我們正在積極的解決他們。
--   :large_orange_diamond: **Public Beta**: 對於不涉及商業目的使用情境來說足夠穩定。
--   **Public Hosting Beta**: _Optionally_, 部屬跟託管你的 Reflex!
--   **Public**: 這版本的 Reflex 是可用於軟體產品的。
+截至 2024 年 2 月，我們的託管服務已進入 alpha 階段！在此期間，任何人都可以免費部署他們的應用程式。請參閱我們的[產品地圖](https://github.com/reflex-dev/reflex/issues/2727)了解未來的計劃。
 
 Reflex 每周都有新功能和釋出新版本! 確保你按下 :star: 和 :eyes: watch 這個 repository 來確保知道最新資訊。
 
 ## 貢獻
 
-我們歡迎任何大小的貢獻，以下是幾個好的方法來加入 Reflex 社群。
+我們歡迎任何大小的貢獻，以下是一些加入 Reflex 社群的好方法。
 
--   **加入我們的 Discord**: 我們的 [Discord](https://discord.gg/T5WSbC2YtQ) 是幫助你加入 Reflex 專案和討論或貢獻最棒的地方。
--   **GitHub Discussions**: 一個來討論你想要添加的功能或是需要澄清的事情的好地方。
--   **GitHub Issues**: 報告錯誤的絕佳地方，另外你可以試著解決一些 issue 和送出 PR。
+-   **加入我們的 Discord**: 我們的 [Discord](https://discord.gg/T5WSbC2YtQ) 是獲取 Reflex 專案幫助和討論如何貢獻的最佳地方。
+-   **GitHub Discussions**: 這是一個討論您想新增的功能或對於一些困惑/需要澄清事項的好方法。
+-   **GitHub Issues**: 在 [Issues](https://github.com/reflex-dev/reflex/issues) 頁面報告錯誤是一個絕佳的方式。此外，您也可以嘗試解決現有 Issue 並提交 PR。
 
-我們正在積極尋找貢獻者，無關你的技能水平或經驗。
+我們積極尋找貢獻者，不論您的技能水平或經驗如何。要貢獻，請查看 [CONTIBUTING.md](https://github.com/reflex-dev/reflex/blob/main/CONTRIBUTING.md)
+
+
+## 感謝所有貢獻者:
+<a href="https://github.com/reflex-dev/reflex/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=reflex-dev/reflex" />
+</a>
 
 ## 授權
 

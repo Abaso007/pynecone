@@ -1,26 +1,25 @@
 """Middleware to hydrate the state."""
+
 from __future__ import annotations
 
+import dataclasses
 from typing import TYPE_CHECKING, Optional
 
 from reflex import constants
-from reflex.event import Event, fix_events, get_hydrate_event
+from reflex.event import Event, get_hydrate_event
 from reflex.middleware.middleware import Middleware
-from reflex.state import State, StateUpdate
-from reflex.utils import format
+from reflex.state import BaseState, StateUpdate, _resolve_delta
 
 if TYPE_CHECKING:
     from reflex.app import App
 
 
-State.add_var(constants.CompileVars.IS_HYDRATED, type_=bool, default_value=False)
-
-
+@dataclasses.dataclass(init=True)
 class HydrateMiddleware(Middleware):
     """Middleware to handle initial app hydration."""
 
     async def preprocess(
-        self, app: App, state: State, event: Event
+        self, app: App, state: BaseState, event: Event
     ) -> Optional[StateUpdate]:
         """Preprocess the event.
 
@@ -42,25 +41,10 @@ class HydrateMiddleware(Middleware):
         # Mark state as not hydrated (until on_loads are complete)
         setattr(state, constants.CompileVars.IS_HYDRATED, False)
 
-        # Apply client side storage values to state
-        for storage_type in (constants.COOKIES, constants.LOCAL_STORAGE):
-            if storage_type in event.payload:
-                for key, value in event.payload[storage_type].items():
-                    state_name, _, var_name = key.rpartition(".")
-                    var_state = state.get_substate(state_name.split("."))
-                    setattr(var_state, var_name, value)
-
         # Get the initial state.
-        delta = format.format_state({state.get_name(): state.dict()})
+        delta = await _resolve_delta(state.dict())
         # since a full dict was captured, clean any dirtiness
         state._clean()
 
-        # Get the route for on_load events.
-        route = event.router_data.get(constants.RouteVar.PATH, "")
-
-        # Add the on_load events and set is_hydrated to True.
-        events = [*app.get_load_events(route), type(state).set_is_hydrated(True)]  # type: ignore
-        events = fix_events(events, event.token, router_data=event.router_data)
-
         # Return the state update.
-        return StateUpdate(delta=delta, events=events)
+        return StateUpdate(delta=delta, events=[])
