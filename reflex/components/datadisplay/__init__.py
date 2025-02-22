@@ -1,11 +1,20 @@
-"""Data display components."""
+"""Data grid components."""
 
-from .badge import Badge
-from .code import Code, CodeBlock
-from .datatable import DataTable
-from .divider import Divider
-from .keyboard_key import KeyboardKey
-from .list import List, ListItem, OrderedList, UnorderedList
-from .stat import Stat, StatArrow, StatGroup, StatHelpText, StatLabel, StatNumber
-from .table import Table, TableCaption, TableContainer, Tbody, Td, Tfoot, Th, Thead, Tr
-from .tag import Tag, TagCloseButton, TagLabel, TagLeftIcon, TagRightIcon
+from __future__ import annotations
+
+from reflex.utils import lazy_loader
+
+_SUBMOD_ATTRS: dict[str, list[str]] = {
+    "code": [
+        "CodeBlock",
+        "code_block",
+        "LiteralCodeLanguage",
+    ],
+    "dataeditor": ["data_editor", "data_editor_theme", "DataEditorTheme"],
+    "logo": ["logo"],
+}
+
+__getattr__, __dir__, __all__ = lazy_loader.attach(
+    __name__,
+    submod_attrs=_SUBMOD_ATTRS,
+)

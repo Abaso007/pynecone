@@ -1,66 +1,30 @@
-# Reflex Docker Container
+# Reflex Docker Examples
 
-This example describes how to create and use a container image for Reflex with your own code.
+This directory contains several examples of how to deploy Reflex apps using docker.
 
-## Update Requirements
+In all cases, ensure that your `requirements.txt` file is up to date and
+includes the `reflex` package.
 
-The `requirements.txt` includes the reflex package which is needed to install
-Reflex framework. If you use additional packages in your project you have to add
-this in the `requirements.txt` first. Copy the `Dockerfile`, `.dockerignore` and
-the `requirements.txt` file in your project folder.
+## `simple-two-port`
 
-## Build Reflex Container Image
+The most basic production deployment exposes two HTTP ports and relies on an
+existing load balancer to forward the traffic appropriately.
 
-To build your container image run the following command:
+## `simple-one-port`
 
-```bash
-docker build -t reflex-app:latest . --build-arg API_URL=http://app.example.com:8000
-```
+This deployment exports the frontend statically and serves it via a single HTTP
+port using Caddy. This is useful for platforms that only support a single port
+or where running a node server in the container is undesirable.
 
-Ensure that `API_URL` is set to the publicly accessible hostname or IP where the app
-will be hosted.
+## `production-compose`
 
-## Start Container Service
+This deployment is intended for use with a standalone VPS that is only hosting a
+single Reflex app. It provides the entire stack in a single `compose.yaml`
+including a webserver, one or more backend instances, redis, and a postgres
+database.
 
-Finally, you can start your Reflex container service as follows:
+## `production-app-platform`
 
-```bash
-docker run -p 3000:3000 -p 8000:8000 --name app reflex-app:latest
-```
-
-It may take a few seconds for the service to become available.
-
-# Production Service with Docker Compose and Caddy
-
-An example production deployment uses automatic TLS with Caddy serving static files
-for the frontend and proxying requests to both the frontend and backend.
-
-Copy `compose.yaml`, `Caddy.Dockerfile` and `Caddyfile` to your project directory. The production
-build leverages the same `Dockerfile` described above.
-
-## Customize `Caddyfile`
-
-If the app uses additional backend API routes, those should be added to the
-`@backend_routes` path matcher to ensure they are forwarded to the backend.
-
-## Build Reflex Production Service
-
-During build, set `DOMAIN` environment variable to the domain where the app will
-be hosted!  (Do not include http or https, it will always use https)
-
-```bash
-DOMAIN=example.com docker compose build
-```
-
-This will build both the `app` service from the existing `Dockerfile` and the `webserver`
-service via `Caddy.Dockerfile` that copies the `Caddyfile` and static frontend export
-from the `app` service into the container.
-
-## Run Reflex Production Service
-
-```bash
-DOMAIN=example.com docker compose up
-```
-
-The app should be available at the specified domain via HTTPS. Certificate
-provisioning will occur automatically and may take a few minutes.
+This example deployment is intended for use with App hosting platforms, like
+Azure, AWS, or Google Cloud Run. It is the backend of the deployment, which
+depends on a separately hosted redis instance and static frontend deployment.

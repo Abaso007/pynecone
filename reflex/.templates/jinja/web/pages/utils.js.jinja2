@@ -8,6 +8,8 @@
     {{- component }}
   {%- elif "iterable" in component %}
     {{- render_iterable_tag(component) }}
+  {%- elif component.name == "match"%}
+    {{- render_match_tag(component) }}
   {%- elif "cond" in component %}
     {{- render_condition_tag(component) }}
   {%- elif component.children|length %}
@@ -34,14 +36,10 @@
 {#     component: component dictionary #}
 {% macro render_tag(component) %}
 <{{component.name}} {{- render_props(component.props) }}>
-{%- if component.args is not none -%}
-  {{- render_arg_content(component) }}
-{%- else -%}
-  {{ component.contents }}
-  {% for child in component.children %}
-  {{ render(child) }}
-  {% endfor %}
-{%- endif -%}
+{{ component.contents }}
+{% for child in component.children %}
+{{ render(child) }}
+{% endfor %}
 </{{component.name}}>
 {%- endmacro %}
 
@@ -62,11 +60,11 @@
 {# Args: #}
 {#     component: component dictionary #}
 {% macro render_iterable_tag(component) %}
-{ {%- if component.iterable_type == 'dict' -%}Object.entries({{- component.iterable_state }}){%- else -%}{{- component.iterable_state }}{%- endif -%}.map(({{ component.arg_name }}, {{ component.arg_index }}) => (
+<>{ {{ component.iterable_state }}.map(({{ component.arg_name }}, {{ component.arg_index }}) => (
   {% for child in component.children %}
   {{ render(child) }}
   {% endfor %}
-))}
+))}</>
 {%- endmacro %}
 
 
@@ -76,6 +74,28 @@
 {% macro render_props(props) %}
 {% if props|length %} {{ props|join(" ") }}{% endif %}
 {% endmacro %}
+
+{# Rendering Match component. #}
+{# Args: #}
+{#     component: component dictionary #}
+{% macro render_match_tag(component) %}
+{
+    (() => {
+        switch (JSON.stringify({{ component.cond._js_expr }})) {
+        {% for case in component.match_cases %}
+            {% for condition in case[:-1] %}
+                case JSON.stringify({{ condition._js_expr }}):
+            {% endfor %}
+                return {{ render(case[-1]) }};
+                break;
+        {% endfor %}
+            default:
+                return {{ render(component.default) }};
+                break;
+        }
+    })()
+  }
+{%- endmacro %}
 
 
 {# Rendering content with args. #}
